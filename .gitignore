@@ -1,0 +1,36 @@
+## Build
+bin/
+obj/
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+ARM/
+ARM64/
+
+## Visual Studio / IDE
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.rsuser
+*.DotSettings.user
+
+## Publish / local output
+发布/
+publish/
+*.nupkg
+*.snupkg
+project.lock.json
+artifacts/
+
+## OS / misc
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.log
+*.tmp
+*.swp
+*~

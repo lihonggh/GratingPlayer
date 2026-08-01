@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "GratingPlayer (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "GratingPlayer (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

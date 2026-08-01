@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="GratingPlayer.Views.PlayerWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid
+        x:Name="RootGrid"
+        Background="Black"
+        IsTabStop="True"
+        AllowFocusOnInteraction="True"
+        KeyboardAcceleratorPlacementMode="Hidden"
+        RightTapped="RootGrid_RightTapped">
+        <Grid.ContextFlyout>
+            <MenuFlyout x:Name="PlayerContextMenu">
+                <MenuFlyoutItem Text="退出软件" Click="ExitSoftwareMenu_Click" />
+            </MenuFlyout>
+        </Grid.ContextFlyout>
+
+        <StackPanel
+            x:Name="BoardCanvas"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Background="Black"
+            Orientation="Horizontal"
+            IsHitTestVisible="False" />
+
+        <!-- 保留控件供代码写入状态；默认不显示，避免底部悬浮提示 -->
+        <Border
+            x:Name="PlayHint"
+            VerticalAlignment="Bottom"
+            HorizontalAlignment="Center"
+            Margin="0,0,0,20"
+            Padding="14,8"
+            Background="#66000000"
+            CornerRadius="4"
+            IsHitTestVisible="False"
+            Visibility="Collapsed"
+            Opacity="0">
+            <TextBlock Foreground="White" FontSize="13" Text="" />
+        </Border>
+    </Grid>
+</Window>

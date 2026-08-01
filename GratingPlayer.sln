@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.9.12020.428 insiders
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GratingPlayer", "GratingPlayer.csproj", "{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UILayout2", "..\UILayout2\UILayout2.csproj", "{B92E53DA-C542-4739-A1D9-B2E49012B3BD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|ARM64 = Debug|ARM64
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|ARM64 = Release|ARM64
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Debug|ARM64.Build.0 = Debug|ARM64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Debug|ARM64.Deploy.0 = Debug|ARM64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Debug|x64.ActiveCfg = Debug|x64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Debug|x64.Build.0 = Debug|x64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Debug|x64.Deploy.0 = Debug|x64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Debug|x86.ActiveCfg = Debug|x86
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Debug|x86.Build.0 = Debug|x86
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Debug|x86.Deploy.0 = Debug|x86
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Release|ARM64.ActiveCfg = Release|ARM64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Release|ARM64.Build.0 = Release|ARM64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Release|ARM64.Deploy.0 = Release|ARM64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Release|x64.ActiveCfg = Release|x64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Release|x64.Build.0 = Release|x64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Release|x64.Deploy.0 = Release|x64
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Release|x86.ActiveCfg = Release|x86
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Release|x86.Build.0 = Release|x86
+		{A13B5454-3DE1-4733-89D1-8E4A5ECD34AD}.Release|x86.Deploy.0 = Release|x86
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Debug|ARM64.ActiveCfg = Debug|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Debug|ARM64.Build.0 = Debug|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Debug|x64.Build.0 = Debug|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Debug|x86.Build.0 = Debug|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Release|ARM64.ActiveCfg = Release|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Release|ARM64.Build.0 = Release|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Release|x64.ActiveCfg = Release|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Release|x64.Build.0 = Release|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Release|x86.ActiveCfg = Release|Any CPU
+		{B92E53DA-C542-4739-A1D9-B2E49012B3BD}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9F851433-95DD-4082-A347-D79D12D3DCF1}
+	EndGlobalSection
+EndGlobal

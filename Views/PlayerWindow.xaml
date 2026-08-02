@@ -13,7 +13,7 @@
         RightTapped="RootGrid_RightTapped">
         <Grid.ContextFlyout>
             <MenuFlyout x:Name="PlayerContextMenu">
-                <MenuFlyoutItem Text="退出软件" Click="ExitSoftwareMenu_Click" />
+                <MenuFlyoutItem Text="退出播放" Click="ExitSoftwareMenu_Click" />
             </MenuFlyout>
         </Grid.ContextFlyout>
 

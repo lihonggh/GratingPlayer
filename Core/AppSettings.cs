@@ -28,6 +28,15 @@ public sealed class AppSettings
     /// </summary>
     public int PlaybackDisplayIndex { get; set; }
 
+    /// <summary>播放时的背景音乐文件路径（可选）。</summary>
+    public string MusicFilePath { get; set; } = string.Empty;
+
+    /// <summary>音乐播放方式：循环 / 指定次数。</summary>
+    public MusicPlayCount MusicPlayCount { get; set; } = MusicPlayCount.Loop;
+
+    /// <summary>非循环时播放几遍（1–1000，默认 1）。</summary>
+    public int MusicRepeatTimes { get; set; } = 1;
+
     /// <summary>待机屏：系统桌面无操作多少秒后进入播放。</summary>
     public double IdleSeconds { get; set; } = 60;
 
@@ -131,6 +140,11 @@ public sealed class AppSettings
         if (!Enum.IsDefined(StripOrientation))
             StripOrientation = StripOrientation.Vertical;
         WatchFolder = WatchFolder?.Trim() ?? string.Empty;
+        MusicFilePath = MusicFilePath?.Trim() ?? string.Empty;
+        if (!Enum.IsDefined(MusicPlayCount))
+            MusicPlayCount = MusicPlayCount.Loop;
+        // 兼容旧配置：Once(1) 与 Times(1) 同值
+        MusicRepeatTimes = Math.Clamp(MusicRepeatTimes <= 0 ? 1 : MusicRepeatTimes, 1, 1000);
         Schemes ??= [];
         Schemes.RemoveAll(s => s is null || string.IsNullOrWhiteSpace(s.Name));
         foreach (var scheme in Schemes)
@@ -142,6 +156,10 @@ public sealed class AppSettings
             scheme.IdleSeconds = Math.Clamp(scheme.IdleSeconds, 5, 3600);
             if (scheme.DwellSeconds < 0.5)
                 scheme.DwellSeconds = 0.5;
+            if (!Enum.IsDefined(scheme.MusicPlayCount))
+                scheme.MusicPlayCount = MusicPlayCount.Loop;
+            scheme.MusicRepeatTimes = Math.Clamp(
+                scheme.MusicRepeatTimes <= 0 ? 1 : scheme.MusicRepeatTimes, 1, 1000);
         }
 
         if (!string.IsNullOrWhiteSpace(ActiveSchemeId) &&

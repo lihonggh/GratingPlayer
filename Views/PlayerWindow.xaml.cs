@@ -5,6 +5,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Windows.Media.Core;
+using Windows.Media.Playback;
 using Windows.Storage;
 using Windows.System;
 
@@ -35,6 +37,9 @@ public sealed partial class PlayerWindow : Window
     private string? _placeholderPath;
     private bool _exitRaised;
     private bool _sessionRunning;
+    private MediaPlayer? _musicPlayer;
+    /// <summary>按次数播放时，还剩几遍（含当前正在播的一遍结束后的剩余）。</summary>
+    private int _musicPlaysRemaining;
 
     internal bool SuppressExitEvent { get; set; }
 
@@ -55,6 +60,7 @@ public sealed partial class PlayerWindow : Window
         {
             Safe("PlayerWindow.Closed", () =>
             {
+                StopBackgroundMusic();
                 if (App.ActivePlayer == this)
                     App.ActivePlayer = null;
             });
@@ -140,6 +146,10 @@ public sealed partial class PlayerWindow : Window
         EnsurePlaybackFocus();
         _ = ReassertFullscreenAfterLayoutAsync(targetDisplay);
 
+        // 音乐与画面分线：不阻塞开播。新图+「1次」改在每张新图展示时触发。
+        if (ShouldStartMusicWithSession())
+            _ = StartBackgroundMusicAsync(loop: IsMusicLoop());
+
         if (mode == PlayerSessionMode.Carousel)
         {
             RestartPlaybackMonitor();
@@ -169,6 +179,7 @@ public sealed partial class PlayerWindow : Window
         _playCts = null;
         _monitor?.Dispose();
         _monitor = null;
+        StopBackgroundMusic();
         Close();
     }
 
@@ -185,10 +196,133 @@ public sealed partial class PlayerWindow : Window
         _monitor?.Dispose();
         _monitor = null;
 
+        StopBackgroundMusic();
+
         if (!SuppressExitEvent)
             Exited?.Invoke(reason);
 
         Close();
+    }
+
+    private bool IsMusicLoop() => _settings.MusicPlayCount != MusicPlayCount.Times;
+
+    private int GetMusicRepeatTimes()
+        => Math.Clamp(_settings.MusicRepeatTimes <= 0 ? 1 : _settings.MusicRepeatTimes, 1, 1000);
+
+    /// <summary>
+    /// 连续/待机：进入会话即播音乐。
+    /// 新图+循环：会话开始即循环。
+    /// 新图+指定次数：等每张新图开始展示时再按次数播放。
+    /// </summary>
+    private bool ShouldStartMusicWithSession()
+    {
+        if (_mode == PlayerSessionMode.Carousel)
+            return true;
+        return IsMusicLoop();
+    }
+
+    /// <summary>不阻塞画面。循环或按次数启播；退出会话时立刻停，未播完的次数作废。</summary>
+    private async Task StartBackgroundMusicAsync(bool loop)
+    {
+        StopBackgroundMusic();
+
+        var path = _settings.MusicFilePath?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            return;
+
+        try
+        {
+            var file = await StorageFile.GetFileFromPathAsync(path);
+            if (!_sessionRunning)
+                return;
+
+            _musicPlaysRemaining = loop ? 0 : GetMusicRepeatTimes();
+
+            var player = new MediaPlayer
+            {
+                IsLoopingEnabled = loop,
+                AudioCategory = MediaPlayerAudioCategory.Media,
+                Volume = 1
+            };
+            player.MediaEnded += MusicPlayer_MediaEnded;
+            player.Source = MediaSource.CreateFromStorageFile(file);
+            _musicPlayer = player;
+
+            if (!_sessionRunning || _paused)
+                return;
+
+            player.Play();
+        }
+        catch (Exception ex)
+        {
+            LogUiException(nameof(StartBackgroundMusicAsync), ex);
+            StopBackgroundMusic();
+        }
+    }
+
+    private void MusicPlayer_MediaEnded(MediaPlayer sender, object args)
+    {
+        // 退出播放后不再续播剩余次数
+        try
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                Safe(nameof(MusicPlayer_MediaEnded), () =>
+                {
+                    if (!ReferenceEquals(sender, _musicPlayer))
+                        return;
+                    if (!_sessionRunning || sender.IsLoopingEnabled)
+                        return;
+
+                    _musicPlaysRemaining--;
+                    if (_musicPlaysRemaining <= 0 || _paused)
+                        return;
+
+                    try
+                    {
+                        sender.PlaybackSession.Position = TimeSpan.Zero;
+                        sender.Play();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogUiException("MusicPlayer_MediaEnded.Replay", ex);
+                    }
+                });
+            });
+        }
+        catch
+        {
+            // ignore
+        }
+    }
+
+    /// <summary>新图 + 指定次数：每张新图开始展示时按设定次数重头播放。</summary>
+    private void PlayMusicTimesForNewImage()
+    {
+        if (IsMusicLoop())
+            return;
+        _ = StartBackgroundMusicAsync(loop: false);
+    }
+
+    private void StopBackgroundMusic()
+    {
+        _musicPlaysRemaining = 0;
+        var player = _musicPlayer;
+        _musicPlayer = null;
+        if (player is null)
+            return;
+
+        try
+        {
+            player.MediaEnded -= MusicPlayer_MediaEnded;
+            player.Pause();
+            player.Source = null;
+            player.Dispose();
+        }
+        catch
+        {
+            // ignore
+        }
     }
 
     private async Task ReassertFullscreenAfterLayoutAsync(DisplayArea display)
@@ -482,6 +616,9 @@ public sealed partial class PlayerWindow : Window
 
                 await EnsureBoardReadyAsync();
 
+                // 新图 + 指定次数：每张新图开始展示时按次数播放（与画面并行；退出则立刻停）
+                PlayMusicTimesForNewImage();
+
                 if (isFirst)
                 {
                     await ShowStillAsync(nextPath);
@@ -738,8 +875,24 @@ public sealed partial class PlayerWindow : Window
             return;
 
         _paused = !_paused;
+        try
+        {
+            if (_musicPlayer is not null)
+            {
+                if (_paused)
+                    _musicPlayer.Pause();
+                else
+                    _musicPlayer.Play();
+            }
+        }
+        catch
+        {
+            // ignore
+        }
+
         EnsurePlaybackFocus();
     }
+
 
     private void RootGrid_RightTapped(object sender, RightTappedRoutedEventArgs e)
     {

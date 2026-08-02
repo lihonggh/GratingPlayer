@@ -16,6 +16,8 @@
             <Color x:Key="PrimaryHover">#C49642</Color>
             <Color x:Key="PrimaryPressed">#A67A2E</Color>
             <Color x:Key="CheckAccent">#005A5E</Color>
+            <Color x:Key="MonitorHover">#0E7A7F</Color>
+            <Color x:Key="MonitorPressed">#004448</Color>
             <Color x:Key="LinkBlue">#2563EB</Color>
             <Color x:Key="Danger">#C45C5C</Color>
             <Color x:Key="DangerDeep">#A84848</Color>
@@ -33,6 +35,8 @@
             <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHover}" />
             <SolidColorBrush x:Key="PrimaryPressedBrush" Color="{StaticResource PrimaryPressed}" />
             <SolidColorBrush x:Key="CheckAccentBrush" Color="{StaticResource CheckAccent}" />
+            <SolidColorBrush x:Key="MonitorHoverBrush" Color="{StaticResource MonitorHover}" />
+            <SolidColorBrush x:Key="MonitorPressedBrush" Color="{StaticResource MonitorPressed}" />
             <SolidColorBrush x:Key="LinkBlueBrush" Color="{StaticResource LinkBlue}" />
             <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Danger}" />
             <SolidColorBrush x:Key="DangerDeepBrush" Color="{StaticResource DangerDeep}" />
@@ -147,6 +151,69 @@
                 <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
                 <Setter Property="BorderBrush" Value="#F0C8C8" />
                 <Setter Property="Padding" Value="10,4" />
+            </Style>
+
+            <!-- 待机/监控进行中：青绿底，区别于金色「进入」态 -->
+            <Style x:Key="MonitoringAction" TargetType="Button">
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="White" />
+                <Setter Property="Background" Value="{StaticResource CheckAccentBrush}" />
+                <Setter Property="BorderBrush" Value="{StaticResource MonitorPressedBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="12,8" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="HorizontalContentAlignment" Value="Center" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border
+                                x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{TemplateBinding CornerRadius}"
+                                Padding="{TemplateBinding Padding}">
+                                <ContentPresenter
+                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    FontSize="{TemplateBinding FontSize}"
+                                    FontWeight="{TemplateBinding FontWeight}"
+                                    Foreground="{TemplateBinding Foreground}"
+                                    TextWrapping="WrapWholeWords" />
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal" />
+                                        <VisualState x:Name="PointerOver">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource MonitorHoverBrush}" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Background">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource MonitorPressedBrush}" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <Storyboard>
+                                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="Root" Storyboard.TargetProperty="Opacity">
+                                                    <DiscreteObjectKeyFrame KeyTime="0" Value="0.7" />
+                                                </ObjectAnimationUsingKeyFrames>
+                                            </Storyboard>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
             <Style x:Key="SchemeLink" TargetType="HyperlinkButton">

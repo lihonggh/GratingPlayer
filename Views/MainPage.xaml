@@ -13,7 +13,7 @@
         <Canvas
             x:Name="LayoutCanvas"
             Width="689"
-            Height="690"
+            Height="772"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
             Background="{StaticResource PageBgBrush}">
@@ -34,7 +34,7 @@
                 Canvas.Left="62"
                 Canvas.Top="74"
                 Width="566"
-                Height="480"
+                Height="562"
                 Background="{StaticResource SurfaceBrush}"
                 BorderBrush="{StaticResource SurfaceLineBrush}"
                 BorderThickness="1"
@@ -54,6 +54,8 @@
                             Width="355"
                             Height="34"
                             FontSize="{StaticResource AppFontSize}"
+                            TextAlignment="Left"
+                            HorizontalContentAlignment="Left"
                             PlaceholderText="浏览或粘贴目录路径…"
                             LostFocus="FolderTextBox_LostFocus"
                             TextChanged="FolderTextBox_TextChanged" />
@@ -194,6 +196,7 @@
                             Maximum="3600"
                             SmallChange="5"
                             SpinButtonPlacementMode="Compact"
+                            HorizontalContentAlignment="Left"
                             Visibility="Collapsed"
                             ValueChanged="IdleSecondsBox_ValueChanged" />
                         <TextBlock
@@ -221,10 +224,92 @@
                             DropDownOpened="PlaybackDisplayCombo_DropDownOpened"
                             SelectionChanged="PlaybackDisplayCombo_SelectionChanged" />
 
+                        <TextBlock
+                            x:Name="MusicLabel"
+                            Canvas.Left="26"
+                            Canvas.Top="260"
+                            Style="{StaticResource FieldLabel}"
+                            Text="播放音乐：" />
+                        <TextBox
+                            x:Name="MusicTextBox"
+                            Canvas.Left="111"
+                            Canvas.Top="255"
+                            Width="355"
+                            Height="34"
+                            FontSize="{StaticResource AppFontSize}"
+                            TextAlignment="Left"
+                            HorizontalContentAlignment="Left"
+                            LostFocus="MusicTextBox_LostFocus"
+                            TextChanged="MusicTextBox_TextChanged" />
+                        <Button
+                            x:Name="BrowseMusicButton"
+                            Canvas.Left="470"
+                            Canvas.Top="255"
+                            Width="74"
+                            Height="34"
+                            Padding="4,0"
+                            Content="浏览…"
+                            Click="BrowseMusic_Click"
+                            Style="{StaticResource Action}" />
+
+                        <!-- 与上方音乐路径输入框左缘对齐（111），同「条纹类型」缩进 -->
+                        <TextBlock
+                            x:Name="MusicCountLabel"
+                            Canvas.Left="111"
+                            Canvas.Top="301"
+                            Style="{StaticResource FieldLabel}"
+                            Text="音乐次数：" />
+                        <RadioButton
+                            x:Name="MusicLoopRadio"
+                            Canvas.Left="196"
+                            Canvas.Top="295"
+                            Content="循环"
+                            FontSize="{StaticResource AppFontSize}"
+                            Foreground="{StaticResource InkBrush}"
+                            GroupName="MusicPlayCount"
+                            MinHeight="28"
+                            Padding="8,0,0,0"
+                            VerticalAlignment="Top"
+                            VerticalContentAlignment="Center"
+                            Checked="MusicPlayCountRadio_Changed" />
+                        <RadioButton
+                            x:Name="MusicTimesRadio"
+                            Canvas.Left="270"
+                            Canvas.Top="295"
+                            FontSize="{StaticResource AppFontSize}"
+                            Foreground="{StaticResource InkBrush}"
+                            GroupName="MusicPlayCount"
+                            MinWidth="22"
+                            MinHeight="28"
+                            Padding="0"
+                            VerticalAlignment="Top"
+                            VerticalContentAlignment="Center"
+                            Checked="MusicPlayCountRadio_Changed" />
+                        <NumberBox
+                            x:Name="MusicTimesBox"
+                            Canvas.Left="296"
+                            Canvas.Top="292"
+                            Width="120"
+                            Height="34"
+                            FontSize="{StaticResource AppFontSize}"
+                            Minimum="1"
+                            Maximum="1000"
+                            SmallChange="1"
+                            SpinButtonPlacementMode="Compact"
+                            HorizontalContentAlignment="Left"
+                            Value="1"
+                            ValueChanged="MusicTimesBox_ValueChanged" />
+                        <TextBlock
+                            x:Name="MusicTimesUnit"
+                            Canvas.Left="422"
+                            Canvas.Top="301"
+                            Style="{StaticResource UnitLabel}"
+                            Text="次" />
+
                         <Rectangle
                             x:Name="AnimDivider"
                             Canvas.Left="26"
-                            Canvas.Top="257"
+                            Canvas.Top="339"
                             Width="518"
                             Height="1"
                             Fill="#E5E7EB" />
@@ -232,19 +317,19 @@
                         <TextBlock
                             x:Name="AnimParamsLabel"
                             Canvas.Left="26"
-                            Canvas.Top="271"
+                            Canvas.Top="353"
                             Style="{StaticResource SectionLabel}"
                             Text="动画参数" />
                         <TextBlock
                             x:Name="StripTypeLabel"
                             Canvas.Left="111"
-                            Canvas.Top="271"
+                            Canvas.Top="353"
                             Style="{StaticResource FieldLabel}"
                             Text="条纹类型：" />
                         <ComboBox
                             x:Name="StripOrientationCombo"
                             Canvas.Left="196"
-                            Canvas.Top="266"
+                            Canvas.Top="348"
                             Width="269"
                             Height="34"
                             FontSize="{StaticResource AppFontSize}"
@@ -257,68 +342,71 @@
                         <TextBlock
                             x:Name="StripCountLabel"
                             Canvas.Left="111"
-                            Canvas.Top="312"
+                            Canvas.Top="394"
                             Style="{StaticResource FieldLabel}"
                             Text="条纹数量：" />
                         <NumberBox
                             x:Name="StripCountBox"
                             Canvas.Left="196"
-                            Canvas.Top="307"
+                            Canvas.Top="389"
                             Width="269"
                             FontSize="{StaticResource AppFontSize}"
                             Minimum="1"
                             Maximum="200"
                             SpinButtonPlacementMode="Compact"
+                            HorizontalContentAlignment="Left"
                             ValueChanged="StripCountBox_ValueChanged" />
 
                         <!-- 数值框右缘与上方 111+354=465 对齐；「秒」在 470 -->
                         <TextBlock
                             x:Name="FlipDurationLabel"
                             Canvas.Left="111"
-                            Canvas.Top="353"
+                            Canvas.Top="435"
                             Style="{StaticResource FieldLabel}"
                             Text="动画时长："
                             ToolTipService.ToolTip="单次动画用时" />
                         <NumberBox
                             x:Name="FlipDurationBox"
                             Canvas.Left="196"
-                            Canvas.Top="348"
+                            Canvas.Top="430"
                             Width="269"
                             FontSize="{StaticResource AppFontSize}"
                             Minimum="0.12"
                             Maximum="5"
                             SmallChange="0.05"
                             SpinButtonPlacementMode="Compact"
+                            HorizontalContentAlignment="Left"
                             ValueChanged="FlipDurationBox_ValueChanged" />
                         <TextBlock
                             x:Name="FlipDurationUnit"
                             Canvas.Left="470"
-                            Canvas.Top="353"
+                            Canvas.Top="435"
                             Style="{StaticResource UnitLabel}"
                             Text="秒" />
 
                         <TextBlock
                             x:Name="DwellLabel"
                             Canvas.Left="111"
-                            Canvas.Top="394"
+                            Canvas.Top="476"
                             Style="{StaticResource FieldLabel}"
                             Text="停留时长："
                             ToolTipService.ToolTip="动画结束后停留时间" />
                         <NumberBox
                             x:Name="DwellBox"
                             Canvas.Left="196"
-                            Canvas.Top="389"
+                            Canvas.Top="471"
                             Width="269"
                             FontSize="{StaticResource AppFontSize}"
                             Minimum="0.5"
                             Maximum="30"
                             SmallChange="0.5"
                             SpinButtonPlacementMode="Compact"
+                            HorizontalContentAlignment="Left"
                             ValueChanged="DwellBox_ValueChanged" />
                         <TextBlock
                             x:Name="DwellUnit"
                             Canvas.Left="470"
-                            Canvas.Top="394"
+                            Canvas.Top="476"
                             Style="{StaticResource UnitLabel}"
                             Text="秒" />
                     </Canvas>
@@ -333,7 +421,7 @@
 
             <Grid
                 Canvas.Left="62"
-                Canvas.Top="560"
+                Canvas.Top="642"
                 Width="566"
                 Height="28">
                 <StackPanel
@@ -381,7 +469,7 @@
             <TextBlock
                 x:Name="ImageCountText"
                 Canvas.Left="63"
-                Canvas.Top="612"
+                Canvas.Top="694"
                 Width="160"
                 FontSize="{StaticResource AppFontSize}"
                 VerticalAlignment="Center"
@@ -399,9 +487,9 @@
 
             <Button
                 x:Name="PrimaryActionButton"
-                Canvas.Left="234"
-                Canvas.Top="600"
-                Width="222"
+                Canvas.Left="210"
+                Canvas.Top="682"
+                Width="268"
                 Height="46"
                 Content="播放"
                 Click="PlayNow_Click"

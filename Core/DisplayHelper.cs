@@ -10,7 +10,7 @@ namespace GratingPlayer.Core;
 public static class DisplayHelper
 {
     public const int SettingsWidthDip = 689;
-    public const int SettingsHeightDip = 720;
+    public const int SettingsHeightDip = 802;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct POINT

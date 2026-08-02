@@ -2,6 +2,7 @@ using GratingPlayer.Core;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
 namespace GratingPlayer.Views;
 
@@ -87,6 +88,13 @@ public sealed partial class MainPage : Page
     {
         Safe(nameof(MainPage_Loaded), () =>
         {
+            PolishNumberBoxes(
+                IdleSecondsBox,
+                MusicTimesBox,
+                StripCountBox,
+                FlipDurationBox,
+                DwellBox);
+
             RootGrid.Focus(FocusState.Programmatic);
             ApplySettingsToUi(rebuildSchemeList: true);
             DeferredRefreshPlaybackDisplayCombo();
@@ -94,6 +102,68 @@ public sealed partial class MainPage : Page
             RestartSettingsMonitor();
             StartPlaybackTrigger();
         });
+    }
+
+    /// <summary>数字框：文字左对齐，并隐藏清除「×」（误触且挤占宽度）。</summary>
+    private void PolishNumberBoxes(params NumberBox[] boxes)
+    {
+        foreach (var box in boxes)
+        {
+            box.HorizontalContentAlignment = HorizontalAlignment.Left;
+
+            void Apply()
+            {
+                var tb = FindDescendant<TextBox>(box);
+                if (tb is not null)
+                {
+                    tb.TextAlignment = TextAlignment.Left;
+                    tb.HorizontalContentAlignment = HorizontalAlignment.Left;
+                }
+
+                HideNamedButton(box, "DeleteButton");
+            }
+
+            if (box.IsLoaded)
+                Apply();
+
+            box.Loaded += (_, _) => Apply();
+            // 获焦/改值时模板可能再次显示 ×，继续压掉
+            box.GotFocus += (_, _) => DispatcherQueue.TryEnqueue(Apply);
+            box.ValueChanged += (_, _) => DispatcherQueue.TryEnqueue(Apply);
+        }
+    }
+
+    private static void HideNamedButton(DependencyObject root, string name)
+    {
+        var count = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is FrameworkElement fe &&
+                string.Equals(fe.Name, name, StringComparison.Ordinal) &&
+                child is UIElement el)
+            {
+                el.Visibility = Visibility.Collapsed;
+            }
+
+            HideNamedButton(child, name);
+        }
+    }
+
+    private static T? FindDescendant<T>(DependencyObject root) where T : DependencyObject
+    {
+        var count = VisualTreeHelper.GetChildrenCount(root);
+        for (var i = 0; i < count; i++)
+        {
+            var child = VisualTreeHelper.GetChild(root, i);
+            if (child is T match)
+                return match;
+            var nested = FindDescendant<T>(child);
+            if (nested is not null)
+                return nested;
+        }
+
+        return null;
     }
 
     private void MainPage_Unloaded(object sender, RoutedEventArgs e)
@@ -122,6 +192,11 @@ public sealed partial class MainPage : Page
                 SelectSchemeComboTag(_settings.ActiveSchemeId ?? string.Empty);
 
             FolderTextBox.Text = _settings.WatchFolder;
+            MusicTextBox.Text = _settings.MusicFilePath;
+            MusicLoopRadio.IsChecked = _settings.MusicPlayCount != MusicPlayCount.Times;
+            MusicTimesRadio.IsChecked = _settings.MusicPlayCount == MusicPlayCount.Times;
+            MusicTimesBox.Value = _settings.MusicRepeatTimes;
+            UpdateMusicTimesBoxEnabled();
             IncludeSubdirsCheckBox.IsChecked = _settings.IncludeSubdirectories;
             WatchNewFilesCheckBox.IsChecked = _settings.WatchNewFiles;
             AppendEndRadio.IsChecked = _settings.NewFileAppendMode != NewFileAppendMode.NextPlayPosition;
@@ -229,12 +304,18 @@ public sealed partial class MainPage : Page
         ToolTipService.SetToolTip(SchemeLockOverlay, null);
         SetParamsEnabled(custom);
         UpdateWatchAppendRadiosEnabled();
+        UpdateMusicTimesBoxEnabled();
     }
 
     private void SetParamsEnabled(bool enabled)
     {
         FolderTextBox.IsEnabled = enabled;
         BrowseButton.IsEnabled = enabled;
+        MusicTextBox.IsEnabled = enabled;
+        BrowseMusicButton.IsEnabled = enabled;
+        MusicLoopRadio.IsEnabled = enabled;
+        MusicTimesRadio.IsEnabled = enabled;
+        MusicTimesBox.IsEnabled = enabled && MusicTimesRadio.IsChecked == true;
         IncludeSubdirsCheckBox.IsEnabled = enabled;
         WatchNewFilesCheckBox.IsEnabled = enabled;
         PlayOrderCombo.IsEnabled = enabled;
@@ -261,6 +342,9 @@ public sealed partial class MainPage : Page
         IdleSecondsLabel.Foreground = labelBrush;
         IdleSecondsUnit.Foreground = labelBrush;
         PlaybackDisplayLabel.Foreground = labelBrush;
+        MusicLabel.Foreground = labelBrush;
+        MusicCountLabel.Foreground = labelBrush;
+        MusicTimesUnit.Foreground = labelBrush;
         AnimParamsLabel.Foreground = labelBrush;
         StripTypeLabel.Foreground = labelBrush;
         StripCountLabel.Foreground = labelBrush;
@@ -746,6 +830,12 @@ public sealed partial class MainPage : Page
         }
 
         _settings.WatchFolder = FolderTextBox.Text?.Trim() ?? string.Empty;
+        _settings.MusicFilePath = MusicTextBox.Text?.Trim() ?? string.Empty;
+        _settings.MusicPlayCount = MusicTimesRadio.IsChecked == true
+            ? MusicPlayCount.Times
+            : MusicPlayCount.Loop;
+        _settings.MusicRepeatTimes = (int)Math.Clamp(
+            FiniteOr(MusicTimesBox.Value, _settings.MusicRepeatTimes), 1, 1000);
         _settings.IncludeSubdirectories = IncludeSubdirsCheckBox.IsChecked == true;
         _settings.WatchNewFiles = WatchNewFilesCheckBox.IsChecked == true;
         _settings.NewFileAppendMode = ReadAppendMode();
@@ -808,22 +898,40 @@ public sealed partial class MainPage : Page
         const double row = 41.0;
         var d = idle ? row : 0.0;
         var playBoxTop = 214.0 + d;
+        var musicBoxTop = 255.0 + d;
+        var musicCountTop = 295.0 + d;
 
         Canvas.SetTop(PlaybackDisplayCombo, playBoxTop);
         Canvas.SetTop(PlaybackDisplayLabel, playBoxTop + 5);
 
-        Canvas.SetTop(AnimDivider, 257 + d);
-        Canvas.SetTop(AnimParamsLabel, 271 + d);
-        Canvas.SetTop(StripTypeLabel, 271 + d);
-        Canvas.SetTop(StripOrientationCombo, 266 + d);
-        Canvas.SetTop(StripCountLabel, 312 + d);
-        Canvas.SetTop(StripCountBox, 307 + d);
-        Canvas.SetTop(FlipDurationLabel, 353 + d);
-        Canvas.SetTop(FlipDurationBox, 348 + d);
-        Canvas.SetTop(FlipDurationUnit, 353 + d);
-        Canvas.SetTop(DwellLabel, 394 + d);
-        Canvas.SetTop(DwellBox, 389 + d);
-        Canvas.SetTop(DwellUnit, 394 + d);
+        Canvas.SetTop(MusicTextBox, musicBoxTop);
+        Canvas.SetTop(BrowseMusicButton, musicBoxTop);
+        Canvas.SetTop(MusicLabel, musicBoxTop + 5);
+
+        // 与音乐路径输入框左缘对齐（截图缩进），勿贴齐「播放音乐」标签列
+        Canvas.SetLeft(MusicCountLabel, 111);
+        Canvas.SetLeft(MusicLoopRadio, 196);
+        Canvas.SetLeft(MusicTimesRadio, 270);
+        Canvas.SetLeft(MusicTimesBox, 296);
+        Canvas.SetLeft(MusicTimesUnit, 422);
+        Canvas.SetTop(MusicLoopRadio, musicCountTop);
+        Canvas.SetTop(MusicTimesRadio, musicCountTop);
+        Canvas.SetTop(MusicTimesBox, musicCountTop - 3);
+        Canvas.SetTop(MusicTimesUnit, musicCountTop + 6);
+        Canvas.SetTop(MusicCountLabel, musicCountTop + 6);
+
+        Canvas.SetTop(AnimDivider, 339 + d);
+        Canvas.SetTop(AnimParamsLabel, 353 + d);
+        Canvas.SetTop(StripTypeLabel, 353 + d);
+        Canvas.SetTop(StripOrientationCombo, 348 + d);
+        Canvas.SetTop(StripCountLabel, 394 + d);
+        Canvas.SetTop(StripCountBox, 389 + d);
+        Canvas.SetTop(FlipDurationLabel, 435 + d);
+        Canvas.SetTop(FlipDurationBox, 430 + d);
+        Canvas.SetTop(FlipDurationUnit, 435 + d);
+        Canvas.SetTop(DwellLabel, 476 + d);
+        Canvas.SetTop(DwellBox, 471 + d);
+        Canvas.SetTop(DwellUnit, 476 + d);
     }
 
     private void PlayModeCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -872,12 +980,14 @@ public sealed partial class MainPage : Page
         {
             if (_standbySession || _idleWatching)
             {
-                PrimaryActionButton.Content = "取消待机监控";
+                ApplyPrimaryButtonStyle("MonitoringAction");
+                RefreshStandbyCountdownButtonText();
                 StatusText.Text = "监控中：空闲达标后播放；播放中若有键鼠操作将退出并继续等待。";
             }
             else
             {
                 PrimaryActionButton.Content = "进入待机监控";
+                ApplyPrimaryButtonStyle("PrimaryAction");
                 StatusText.Text = $"设定空闲 {_settings.IdleSeconds:0} 秒后进入播放；播放中有操作会退出并继续等待。";
             }
 
@@ -890,11 +1000,13 @@ public sealed partial class MainPage : Page
             if (_newImageSession)
             {
                 PrimaryActionButton.Content = "取消新图监控";
+                ApplyPrimaryButtonStyle("PrimaryAction");
                 StatusText.Text = "已进入全屏等待；仅播放监控开始后出现的新图片。";
             }
             else
             {
                 PrimaryActionButton.Content = "进入新图监控";
+                ApplyPrimaryButtonStyle("PrimaryAction");
                 StatusText.Text = "第 1 张直接显示，之后每来一张翻转一次；监控前已有图片不会入队。";
             }
 
@@ -903,7 +1015,28 @@ public sealed partial class MainPage : Page
         }
 
         PrimaryActionButton.Content = "播放";
+        ApplyPrimaryButtonStyle("PrimaryAction");
         HintText.Text = string.Empty;
+    }
+
+    private void ApplyPrimaryButtonStyle(string styleKey)
+    {
+        if (Application.Current.Resources.TryGetValue(styleKey, out var value) && value is Style style)
+            PrimaryActionButton.Style = style;
+    }
+
+    /// <summary>待机监控：按钮显示「n秒后播放（点击取消）」实时倒计时。</summary>
+    private void RefreshStandbyCountdownButtonText()
+    {
+        if (PrimaryActionButton is null)
+            return;
+
+        var need = Math.Max(5, _settings.IdleSeconds);
+        var idle = SystemIdleHelper.GetIdleSeconds();
+        var remainSec = (int)Math.Ceiling(Math.Max(0, need - idle));
+        var text = $"{remainSec}秒后播放（点击取消）";
+        if (!Equals(PrimaryActionButton.Content, text))
+            PrimaryActionButton.Content = text;
     }
 
     private void StartStandbySession()
@@ -1028,6 +1161,7 @@ public sealed partial class MainPage : Page
             HintText.Text = remain <= 0.05
                 ? "空闲已达标，正在进入播放…"
                 : $"待机监控中：还需空闲 {remain:0} 秒（已空闲 {idle:0} 秒）…";
+            RefreshStandbyCountdownButtonText();
 
             if (idle < need)
                 return;
@@ -1161,6 +1295,110 @@ public sealed partial class MainPage : Page
 
             FolderTextBox.Text = path;
             ApplyFolderPathFromUi(showHint: true);
+        });
+    }
+
+    private void BrowseMusic_Click(object sender, RoutedEventArgs e)
+    {
+        Safe(nameof(BrowseMusic_Click), () =>
+        {
+            if (App.MainWindow is null)
+            {
+                StatusText.Text = "窗口未就绪，无法打开文件选择。";
+                return;
+            }
+
+            var path = NativeFilePicker.PickAudioFile(App.MainWindow, "选择播放音乐");
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                StatusText.Text = "未选择音频文件。";
+                return;
+            }
+
+            MusicTextBox.Text = path;
+            PersistFromUi();
+            HintText.Text = "音乐路径已更新。";
+        });
+    }
+
+    private void MusicTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        Safe(nameof(MusicTextBox_TextChanged), () =>
+        {
+            if (!IsLoaded || _suppressSettingsEvents)
+                return;
+
+            PersistFromUi();
+        });
+    }
+
+    private void MusicPlayCountRadio_Changed(object sender, RoutedEventArgs e)
+    {
+        Safe(nameof(MusicPlayCountRadio_Changed), () =>
+        {
+            if (!IsLoaded || _suppressSettingsEvents)
+                return;
+            UpdateMusicTimesBoxEnabled();
+            OnSettingsInteracted();
+            PersistFromUi();
+        });
+    }
+
+    private void MusicTimesBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+    {
+        Safe(nameof(MusicTimesBox_ValueChanged), () =>
+        {
+            if (!IsLoaded || _suppressSettingsEvents)
+                return;
+
+            // 改次数即视为「按次数播放」
+            if (MusicTimesRadio.IsChecked != true)
+            {
+                _suppressSettingsEvents = true;
+                try
+                {
+                    MusicTimesRadio.IsChecked = true;
+                }
+                finally
+                {
+                    _suppressSettingsEvents = false;
+                }
+            }
+
+            UpdateMusicTimesBoxEnabled();
+            OnSettingsInteracted();
+            PersistFromUi();
+        });
+    }
+
+    private void UpdateMusicTimesBoxEnabled()
+    {
+        var custom = _settings.IsCustomMode;
+        MusicTimesBox.IsEnabled = custom && MusicTimesRadio.IsChecked == true;
+    }
+
+    private void MusicTextBox_LostFocus(object sender, RoutedEventArgs e)
+    {
+        Safe(nameof(MusicTextBox_LostFocus), () =>
+        {
+            if (!IsLoaded || _suppressSettingsEvents)
+                return;
+
+            var trimmed = MusicTextBox.Text?.Trim() ?? string.Empty;
+            if (!string.Equals(MusicTextBox.Text, trimmed, StringComparison.Ordinal))
+            {
+                _suppressSettingsEvents = true;
+                try
+                {
+                    MusicTextBox.Text = trimmed;
+                }
+                finally
+                {
+                    _suppressSettingsEvents = false;
+                }
+            }
+
+            PersistFromUi();
         });
     }
 

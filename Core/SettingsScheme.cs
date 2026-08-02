@@ -24,6 +24,12 @@ public sealed class SettingsScheme
 
     public int PlaybackDisplayIndex { get; set; }
 
+    public string MusicFilePath { get; set; } = string.Empty;
+
+    public MusicPlayCount MusicPlayCount { get; set; } = MusicPlayCount.Loop;
+
+    public int MusicRepeatTimes { get; set; } = 1;
+
     public double IdleSeconds { get; set; } = 60;
 
     public double FileStableSeconds { get; set; } = 0.5;
@@ -51,6 +57,9 @@ public sealed class SettingsScheme
             PlayOrder = s.PlayOrder,
             PlayMode = s.PlayMode,
             PlaybackDisplayIndex = s.PlaybackDisplayIndex,
+            MusicFilePath = s.MusicFilePath,
+            MusicPlayCount = s.MusicPlayCount,
+            MusicRepeatTimes = s.MusicRepeatTimes,
             IdleSeconds = s.IdleSeconds,
             FileStableSeconds = s.FileStableSeconds,
             StripOrientation = s.StripOrientation,
@@ -70,6 +79,9 @@ public sealed class SettingsScheme
         s.PlayOrder = PlayOrder;
         s.PlayMode = PlayMode;
         s.PlaybackDisplayIndex = PlaybackDisplayIndex;
+        s.MusicFilePath = MusicFilePath ?? string.Empty;
+        s.MusicPlayCount = MusicPlayCount;
+        s.MusicRepeatTimes = MusicRepeatTimes;
         s.IdleSeconds = IdleSeconds;
         s.FileStableSeconds = FileStableSeconds;
         s.StripOrientation = StripOrientation;
